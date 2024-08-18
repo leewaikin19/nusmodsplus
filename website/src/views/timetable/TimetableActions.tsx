@@ -2,9 +2,9 @@ import * as React from 'react';
 import classnames from 'classnames';
 import { connect } from 'react-redux';
 
-import { Calendar, Grid, Sidebar, Type } from 'react-feather';
+import { Calendar, Grid, Sidebar, Type, Plus } from 'react-feather';
 import { toggleTimetableOrientation, toggleTitleDisplay } from 'actions/theme';
-import { ModuleCode, Semester } from 'types/modules';
+import { CustomBlock, ModuleCode, Semester } from 'types/modules';
 import { SemTimetableConfig } from 'types/timetables';
 
 import elements from 'views/elements';
@@ -14,6 +14,9 @@ import ShareTimetable from './ShareTimetable';
 import ExportMenu from './ExportMenu';
 
 import styles from './TimetableActions.scss';
+import { getCustomBlocks } from 'selectors/timetables';
+import { addCustomBlock } from 'actions/timetables';
+import AddBlocks from './AddBlocks';
 
 type Props = {
   semester: Semester;
@@ -31,6 +34,8 @@ type Props = {
   hiddenModules: ModuleCode[];
 
   resetTimetable: () => void;
+
+  addCustomBlock: (semester: Semester, customBlock: CustomBlock) => void;
 };
 
 const TimetableActions: React.FC<Props> = (props) => (
@@ -83,6 +88,8 @@ const TimetableActions: React.FC<Props> = (props) => (
           )}
         </button>
       )}
+
+      <AddBlocks addCustomBlock={(x,y) => props.addCustomBlock(x, y)} semester={props.semester}/>
     </div>
 
     <div className={styles.buttonGroup} role="group" aria-label="Timetable exporting">
@@ -100,4 +107,5 @@ const TimetableActions: React.FC<Props> = (props) => (
 export default connect(null, {
   toggleTimetableOrientation,
   toggleTitleDisplay,
+  addCustomBlock,
 })(TimetableActions);

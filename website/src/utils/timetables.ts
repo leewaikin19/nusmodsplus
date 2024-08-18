@@ -225,6 +225,7 @@ export function arrangeLessonsWithinDay(lessons: ColoredLesson[]): TimetableDayA
 //    ...
 //  }
 export function arrangeLessonsForWeek(lessons: ColoredLesson[]): TimetableArrangement {
+  //console.log(lessons)
   const dayLessons = groupLessonsByDay(lessons);
   return mapValues(dayLessons, (dayLesson: ColoredLesson[]) => arrangeLessonsWithinDay(dayLesson));
 }

@@ -76,5 +76,5 @@ export function fillColorMapping(
     colorsUsed.push(color);
   });
 
-  return colorMap;
+  return original;
 }

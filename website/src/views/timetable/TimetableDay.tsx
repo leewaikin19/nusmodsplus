@@ -64,7 +64,7 @@ const TimetableDay: React.FC<Props> = (props) => {
 
   if (verticalMode)
     rowStyle.height = `${(VERTICAL_HEIGHT_PER_HOUR / NUM_INTERVALS_PER_HOUR) * columns}rem`;
-
+  
   return (
     <li className={styles.day}>
       <div

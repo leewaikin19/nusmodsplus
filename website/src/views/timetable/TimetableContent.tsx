@@ -3,7 +3,7 @@ import classnames from 'classnames';
 import { connect } from 'react-redux';
 import _ from 'lodash';
 
-import { ColorMapping, HORIZONTAL, ModulesMap, TimetableOrientation } from 'types/reducers';
+import { ColorMapping, CustomBlocks, HORIZONTAL, ModulesMap, TimetableOrientation } from 'types/reducers';
 import { Module, ModuleCode, Semester } from 'types/modules';
 import {
   ColoredLesson,
@@ -20,8 +20,10 @@ import {
   changeLesson,
   HIDDEN_IMPORTED_SEM,
   modifyLesson,
+  removeCustomBlock,
   removeModule,
   resetTimetable,
+  setTimetable,
 } from 'actions/timetables';
 import {
   areLessonsSameClass,
@@ -77,13 +79,16 @@ type Props = OwnProps & {
   showTitle: boolean;
   hiddenInTimetable: ModuleCode[];
 
+  customBlocks: CustomBlocks;
   // Actions
+  setTimetable: (semester: Semester, timetable?: SemTimetableConfig,colors?: ColorMapping,) => void;
   addModule: (semester: Semester, moduleCode: ModuleCode) => void;
   removeModule: (semester: Semester, moduleCode: ModuleCode) => void;
   resetTimetable: (semester: Semester) => void;
   modifyLesson: (lesson: Lesson) => void;
   changeLesson: (semester: Semester, lesson: Lesson) => void;
   cancelModifyLesson: () => void;
+  removeCustomBlock: (semester: Semester, moduleCode: ModuleCode) => void;
 };
 
 type State = {
@@ -122,7 +127,7 @@ class TimetableContent extends React.Component<Props, State> {
     showExamCalendar: false,
     tombstone: null,
   };
-
+  
   timetableRef = React.createRef<HTMLDivElement>();
 
   modifiedCell: ModifiedCell | null = null;
@@ -189,9 +194,15 @@ class TimetableContent extends React.Component<Props, State> {
     const index = this.addedModules().findIndex(
       ({ moduleCode }) => moduleCode === moduleCodeToRemove,
     );
-    this.props.removeModule(this.props.semester, moduleCodeToRemove);
+    const legit = this.legitModules().findIndex(
+      ({ moduleCode }) => moduleCode === moduleCodeToRemove,
+    );
     const moduleWithColor = this.toModuleWithColor(this.addedModules()[index]);
-
+    if (legit !== -1){
+      this.props.removeModule(this.props.semester, moduleCodeToRemove);
+    }else{
+      this.props.removeCustomBlock(this.props.semester, moduleCodeToRemove);
+    }
     // A tombstone is displayed in place of a deleted module
     this.setState({ tombstone: { ...moduleWithColor, index } });
   };
@@ -204,7 +215,16 @@ class TimetableContent extends React.Component<Props, State> {
 
   // Returns modules currently in the timetable
   addedModules(): Module[] {
-    const modules = getSemesterModules(this.props.timetableWithLessons, this.props.modules);
+    let modules = getSemesterModules(this.props.timetableWithLessons, this.props.modules);
+    // TODO injected
+    const cb = this.props.customBlocks[this.props.semester]
+    modules = modules.concat(cb)
+    // TODO injected
+    return _.sortBy(modules, (module: Module) => getExamDate(module, this.props.semester));
+  }
+
+  legitModules(): Module[] {
+    let modules = getSemesterModules(this.props.timetableWithLessons, this.props.modules);
     return _.sortBy(modules, (module: Module) => getExamDate(module, this.props.semester));
   }
 
@@ -237,7 +257,7 @@ class TimetableContent extends React.Component<Props, State> {
     // Separate added modules into sections of clashing modules
     const clashes = findExamClashes(modules, this.props.semester);
     const nonClashingMods: Module[] = _.difference(modules, _.flatten(_.values(clashes)));
-
+    
     if (_.isEmpty(clashes) && _.isEmpty(nonClashingMods) && !tombstone) {
       return (
         <div className="row">
@@ -284,13 +304,13 @@ class TimetableContent extends React.Component<Props, State> {
       readOnly,
       hiddenInTimetable,
     } = this.props;
-
+    
     const { showExamCalendar } = this.state;
-
+    
     let timetableLessons: Lesson[] = timetableLessonsArray(this.props.timetableWithLessons)
       // Do not process hidden modules
       .filter((lesson) => !this.isHiddenInTimetable(lesson.moduleCode));
-
+      
     if (activeLesson) {
       const { moduleCode } = activeLesson;
       // Remove activeLesson because it will appear again
@@ -320,6 +340,15 @@ class TimetableContent extends React.Component<Props, State> {
       });
     }
 
+    // TODO injected 
+    const cb = this.props.customBlocks[this.props.semester]
+    for (const i in cb){
+      if(!this.isHiddenInTimetable(cb[i].moduleCode)){
+        timetableLessons = timetableLessons.concat(cb[i])
+      }
+    }
+     // TODO injected 
+
     // Inject color into module
     const coloredTimetableLessons = timetableLessons.map(
       (lesson: Lesson): ColoredLesson => ({
@@ -328,27 +357,33 @@ class TimetableContent extends React.Component<Props, State> {
       }),
     );
 
+
+
     const arrangedLessons = arrangeLessonsForWeek(coloredTimetableLessons);
+    
     const arrangedLessonsWithModifiableFlag: TimetableArrangement = _.mapValues(
       arrangedLessons,
       (dayRows) =>
         dayRows.map((row) =>
           row.map((lesson) => {
-            const module: Module = modules[lesson.moduleCode];
-            const moduleTimetable = getModuleTimetable(module, semester);
+            if (lesson.customBlock === undefined){
+              const module: Module = modules[lesson.moduleCode];
+              const moduleTimetable = getModuleTimetable(module, semester);
 
-            return {
-              ...lesson,
-              isModifiable:
-                !readOnly && areOtherClassesAvailable(moduleTimetable, lesson.lessonType),
-            };
+              return {
+                ...lesson,
+                isModifiable:
+                  !readOnly && areOtherClassesAvailable(moduleTimetable, lesson.lessonType),
+              };
+            }
+            return lesson
           }),
         ),
     );
 
     const isVerticalOrientation = timetableOrientation !== HORIZONTAL;
     const isShowingTitle = !isVerticalOrientation && showTitle;
-    const addedModules = this.addedModules();
+    let addedModules = this.addedModules();
 
     return (
       <div
@@ -474,7 +509,9 @@ export default connect(mapStateToProps, {
   addModule,
   removeModule,
   resetTimetable,
+  setTimetable,
   modifyLesson,
   changeLesson,
   cancelModifyLesson,
+  removeCustomBlock,
 })(TimetableContent);

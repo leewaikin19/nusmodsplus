@@ -126,10 +126,14 @@ const ModulesSelect: FC<Props> = ({
           })}
         />
         {isModalOpen && <CloseButton className={styles.close} onClick={closeSelectAndEmptyInput} />}
+        
         {showResults && (
           <ol className={styles.selectList} {...getMenuProps()}>
+            
             {results.map((module, index) => (
+              
               <li
+                
                 {...getItemProps({
                   index,
                   key: module.moduleCode,
@@ -143,6 +147,7 @@ const ModulesSelect: FC<Props> = ({
               >
                 {/* Using interpolated string instead of JSX because of iOS Safari
                     bug that drops the whitespace between the module code and title */}
+                
                 {`${module.moduleCode} ${module.title}`}
                 {module.isAdded && (
                   <div className={styles.optionActions}>
@@ -167,8 +172,9 @@ const ModulesSelect: FC<Props> = ({
                     <span className="badge badge-warning">Adding...</span>
                   </div>
                 )}
+                
               </li>
-            ))}
+              ))}
           </ol>
         )}
         {showTip && (

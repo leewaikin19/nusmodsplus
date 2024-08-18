@@ -5,7 +5,7 @@ import { createMigrate } from 'redux-persist';
 import { PersistConfig } from 'storage/persistReducer';
 import { ModuleCode } from 'types/modules';
 import { ModuleLessonConfig, SemTimetableConfig } from 'types/timetables';
-import { ColorMapping, TimetablesState } from 'types/reducers';
+import { ColorMapping, CustomBlock, TimetablesState } from 'types/reducers';
 
 import config from 'config';
 import {
@@ -16,14 +16,17 @@ import {
   REMOVE_MODULE,
   RESET_TIMETABLE,
   SELECT_MODULE_COLOR,
+  ADD_CUSTOM_BLOCK,
   SET_HIDDEN_IMPORTED,
   SET_LESSON_CONFIG,
   SET_TIMETABLE,
   SHOW_LESSON_IN_TIMETABLE,
+  REMOVE_CUSTOM_BLOCK,
 } from 'actions/timetables';
 import { getNewColor } from 'utils/colors';
 import { SET_EXPORTED_DATA } from 'actions/constants';
 import { Actions } from '../types/actions';
+import { block } from 'searchkit';
 
 export const persistConfig = {
   /* eslint-disable no-useless-computed-key */
@@ -145,7 +148,6 @@ function semColors(state: ColorMapping = DEFAULT_SEM_COLOR_MAP, action: Actions)
         ...state,
         [moduleCode]: action.payload.colorIndex,
       };
-
     default:
       return state;
   }
@@ -169,12 +171,15 @@ function semHiddenModules(state = DEFAULT_HIDDEN_STATE, action: Actions) {
   }
 }
 
+const DEFAULT_CUSTOM_BLOCKS: CustomBlock[] = []
 export const defaultTimetableState: TimetablesState = {
+  customBlocks: {1:[], 2:[]},
   lessons: {},
   colors: {},
   hidden: {},
   academicYear: config.academicYear,
   archive: {},
+  
 };
 
 function timetables(
@@ -207,6 +212,7 @@ function timetables(
         draft.lessons[semester] = DEFAULT_SEM_TIMETABLE_CONFIG;
         draft.colors[semester] = DEFAULT_SEM_COLOR_MAP;
         draft.hidden[semester] = DEFAULT_HIDDEN_STATE;
+        draft.customBlocks[semester] = DEFAULT_CUSTOM_BLOCKS;
       });
     }
 
@@ -242,6 +248,39 @@ function timetables(
       return produce(state, (draft) => {
         draft.hidden[semester] = hiddenModules;
       });
+    }
+
+    case ADD_CUSTOM_BLOCK: {
+      const { semester, customBlock } = action.payload;
+      if(state.customBlocks === undefined){
+        state = {...state, customBlocks: {1:[]}}
+      }
+      return produce(state, (draft) => {
+        //const i = Object.keys(state.customBlocks).length
+        //state.customBlocks[semester][i] = customBlock;
+        draft.colors[semester][customBlock.moduleCode] = customBlock.colorIndex;
+        draft.customBlocks[semester] = state.customBlocks[semester].concat(customBlock)
+        //draft.customBlocks[semester] = state.customBlocks[semester];
+      });
+    }
+
+    case REMOVE_CUSTOM_BLOCK: {
+      const { semester, blockCode } = action.payload;
+      if(state.customBlocks === undefined){
+        state = {...state, customBlocks: {1:[]}}
+      }
+      
+      return produce(state, (draft) => {
+        const idk = state.customBlocks[semester].filter(x => x.moduleCode !== blockCode)
+        draft.customBlocks[semester] = idk
+        draft.colors[semester] = omit(state.colors[semester], blockCode)
+      });
+      // return produce(state, (draft) => {
+      //   console.log(draft.customBlocks[semester])
+      //   console.log(blockCode)
+      //   console.log(omit(draft.customBlocks[semester], [blockCode]))
+      //   draft.customBlocks[semester] = omit(draft.customBlocks[semester], [blockCode])
+      // })
     }
 
     default:

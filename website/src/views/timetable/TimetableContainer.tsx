@@ -10,7 +10,7 @@ import type { State } from 'types/state';
 import type { SemTimetableConfig } from 'types/timetables';
 
 import { selectSemester } from 'actions/settings';
-import { getSemesterTimetableColors, getSemesterTimetableLessons } from 'selectors/timetables';
+import { getCustomBlocks, getSemesterTimetableColors, getSemesterTimetableLessons } from 'selectors/timetables';
 import {
   fetchTimetableModules,
   setHiddenModulesFromImport,
@@ -145,6 +145,7 @@ export const TimetableContainerComponent: FC = () => {
   const semester = semesterForTimetablePage(params.semester);
 
   const timetable = useSelector(getSemesterTimetableLessons)(semester);
+  const customBlocks = useSelector(getCustomBlocks);
   const colors = useSelector(getSemesterTimetableColors)(semester);
   const getModule = useSelector(getModuleCondensed);
   const modules = useSelector(({ moduleBank }: State) => moduleBank.modules);
@@ -154,7 +155,7 @@ export const TimetableContainerComponent: FC = () => {
   const [importedTimetable, setImportedTimetable] = useState(() =>
     semester && params.action ? deserializeTimetable(location.search) : null,
   );
-
+  
   const importedHidden = useMemo(
     () => (semester && params.action ? deserializeHidden(location.search) : []),
     [semester, params.action, location.search],
@@ -182,8 +183,12 @@ export const TimetableContainerComponent: FC = () => {
         .filter(isValidModule)
         .forEach((moduleCode) => moduleCodes.add(moduleCode));
     }
+    
     // TODO: Account for loading error
-    return Array.from(moduleCodes).some((moduleCode) => !modules[moduleCode]);
+    const asd = Array.from(moduleCodes).some((moduleCode) => !modules[moduleCode]);
+    //console.log(moduleCodes)
+    return asd;
+    //return false;
   }, [getModule, importedTimetable, modules, timetable]);
 
   const displayedTimetable = importedTimetable || timetable;
@@ -205,13 +210,13 @@ export const TimetableContainerComponent: FC = () => {
   if (isLoading) {
     return <LoadingSpinner />;
   }
-
   return (
     <TimetableContent
       key={semester}
       semester={semester}
       timetable={displayedTimetable}
       colors={filledColors}
+      customBlocks={customBlocks}
       header={
         <>
           <SharingHeader

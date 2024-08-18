@@ -26,7 +26,10 @@ export function getModuleSemesterData(
   module: Module,
   semester: Semester,
 ): SemesterData | undefined {
-  return module.semesterData.find((semData: SemesterData) => semData.semester === semester);
+  const sd = module.semesterData
+  
+  if(sd !== undefined) return sd.find((semData: SemesterData) => semData.semester === semester)
+  return sd;
 }
 
 // Returns a flat array of lessons of a module for the corresponding semester.

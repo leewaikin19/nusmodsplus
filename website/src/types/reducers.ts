@@ -113,8 +113,32 @@ export type ColorMapping = { [moduleCode: string]: ColorIndex };
 export type SemesterColorMap = { [semester: string]: ColorMapping };
 export type HiddenModulesMap = { [semester: string]: ModuleCode[] };
 
+// TODO changed
+export type CustomBlock = {
+      classNo: string,
+      colorIndex: number,
+      day: string,
+      endTime: string,
+      startTime: string,
+      lessonType: string,
+      moduleCode: string,
+      moduleCredit: string,
+      acadYear: string,
+      department: string,
+      faculty: string,
+      venue: string,
+      semesterData: [],
+      timestamp: number,
+      title: string,
+      weeks: number[],
+}
+
+export type CustomBlocks = {[semester: string]: CustomBlock[]}
+
 export type TimetablesState = {
   readonly lessons: TimetableConfig;
+  // TODO changed
+  readonly customBlocks: CustomBlocks;
   readonly colors: SemesterColorMap;
   readonly hidden: HiddenModulesMap;
   readonly academicYear: string;

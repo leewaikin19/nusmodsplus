@@ -84,7 +84,6 @@ class Timetable extends React.PureComponent<Props, State> {
     const currentTimeIndicatorStyle: React.CSSProperties = {
       [dirStyle]: `${hoursMarginOffset + minutesMarginOffset}%`,
     };
-
     return (
       <div>
         <div className={classnames(styles.container, elements.timetable)}>

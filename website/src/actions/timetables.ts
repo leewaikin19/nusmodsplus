@@ -3,7 +3,7 @@ import { each, flatMap } from 'lodash';
 import type { ColorIndex, Lesson, ModuleLessonConfig, SemTimetableConfig } from 'types/timetables';
 import type { Dispatch, GetState } from 'types/redux';
 import type { ColorMapping } from 'types/reducers';
-import type { ClassNo, LessonType, Module, ModuleCode, Semester } from 'types/modules';
+import type { ClassNo, LessonType, Module, ModuleCode, Semester, CustomBlock } from 'types/modules';
 
 import { fetchModule } from 'actions/moduleBank';
 import { openNotification } from 'actions/app';
@@ -46,10 +46,11 @@ export const Internal = {
 };
 
 export function addModule(semester: Semester, moduleCode: ModuleCode) {
+  
   return (dispatch: Dispatch, getState: GetState) =>
     dispatch(fetchModule(moduleCode)).then(() => {
       const module: Module = getState().moduleBank.modules[moduleCode];
-
+      
       if (!module) {
         dispatch(
           openNotification(`Cannot load ${moduleCode}`, {
@@ -66,8 +67,8 @@ export function addModule(semester: Semester, moduleCode: ModuleCode) {
       }
 
       const lessons = getModuleTimetable(module, semester);
+      
       const moduleLessonConfig = randomModuleLessonConfig(lessons);
-
       dispatch(Internal.addModule(semester, moduleCode, moduleLessonConfig));
     });
 }
@@ -79,6 +80,28 @@ export function removeModule(semester: Semester, moduleCode: ModuleCode) {
     payload: {
       semester,
       moduleCode,
+    },
+  };
+}
+
+export const ADD_CUSTOM_BLOCK = 'ADD_CUSTOM_BLOCK' as const;
+export function addCustomBlock(semester: Semester, customBlock: CustomBlock) {
+  return {
+    type: ADD_CUSTOM_BLOCK,
+    payload: {
+      semester,
+      customBlock,
+    },
+  };
+}
+
+export const REMOVE_CUSTOM_BLOCK = 'REMOVE_CUSTOM_BLOCK' as const;
+export function removeCustomBlock(semester: Semester, blockCode: string) {
+  return {
+    type: REMOVE_CUSTOM_BLOCK,
+    payload: {
+      semester,
+      blockCode,
     },
   };
 }
