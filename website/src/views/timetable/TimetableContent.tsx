@@ -340,6 +340,7 @@ class TimetableContent extends React.Component<Props, State> {
       });
     }
 
+    // TODO connect to mongodb
     // TODO add custom block as first block error
     // TODO edit blocks?????
     
