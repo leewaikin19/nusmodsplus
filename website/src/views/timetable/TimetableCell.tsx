@@ -102,7 +102,7 @@ const TimetableCell: React.FC<Props> = (props) => {
     : {};
 
   const weekText = consumeWeeks<React.ReactNode>(lesson.weeks, formatNumericWeeks, formatWeekRange);
-
+  
   const className = classnames(
     styles.baseCell,
     getLessonIdentifier(lesson),
@@ -119,7 +119,7 @@ const TimetableCell: React.FC<Props> = (props) => {
       hover: isHoveredOver,
     },
   );
-
+  
   return (
     <Cell
       className={className}
@@ -134,8 +134,12 @@ const TimetableCell: React.FC<Props> = (props) => {
       <div className={styles.cellContainer}>
         <div className={styles.moduleName}>{moduleName}</div>
         <div>
-          {LESSON_TYPE_ABBREV[lesson.lessonType]} [{lesson.classNo}]
+          {lesson.customBlock === undefined 
+            ? LESSON_TYPE_ABBREV[lesson.lessonType] + " [" + lesson.classNo + "]"
+            : lesson.info
+          }
         </div>
+        {lesson.customBlock ? (<div>{lesson.lessonType}</div>) : null}
         <div>{lesson.venue.startsWith('E-Learn') ? 'E-Learning' : lesson.venue}</div>
         {weekText && <div>{weekText}</div>}
       </div>

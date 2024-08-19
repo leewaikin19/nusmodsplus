@@ -491,8 +491,7 @@ export function formatNumericWeeks(unprocessedWeeks: NumericWeeks): string | nul
   const weeks = unprocessedWeeks.filter(
     (value, index) => unprocessedWeeks.indexOf(value) === index,
   );
-
-  if (weeks.length === 13) return null;
+  //if (weeks.length === 13) return null;
   if (weeks.length === 1) return `Week ${weeks[0]}`;
 
   // Check for odd / even weeks. There are more odd weeks then even weeks, so we have to split

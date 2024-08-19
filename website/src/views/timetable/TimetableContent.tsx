@@ -340,6 +340,9 @@ class TimetableContent extends React.Component<Props, State> {
       });
     }
 
+    // TODO add custom block as first block error
+    // TODO edit blocks?????
+    
     // TODO injected 
     const cb = this.props.customBlocks[this.props.semester]
     for (const i in cb){
